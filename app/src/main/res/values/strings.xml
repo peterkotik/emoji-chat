@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Emoji Chat</string>
+    <string name="message_field_hint">Message %s</string>
+</resources>
