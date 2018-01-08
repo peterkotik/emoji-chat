@@ -10,4 +10,8 @@ public class EmojiMessage {
         this.message = message;
         this.bitmap = bitmap;
     }
+
+    public boolean isEmpty() {
+        return (message == null && bitmap == null);
+    }
 }

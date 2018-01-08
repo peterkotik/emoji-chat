@@ -1,14 +1,18 @@
 package peterkotik.com.emojichat.screens.camerapreview;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.text.emoji.widget.EmojiAppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -22,21 +26,26 @@ import java.util.List;
 
 import peterkotik.com.emojichat.R;
 import peterkotik.com.emojichat.models.EmojiMessage;
+import timber.log.Timber;
 
 public class CameraPreviewActivity extends Activity implements CameraPreviewContract.View, Detector.ImageListener, CameraDetector.CameraEventListener {
 
     CameraPreviewContract.Presenter presenter;
-    SurfaceView cameraPreview;
-    RecyclerView recyclerView;
     ConstraintLayout rootLayout;
+    SurfaceView cameraPreview;
+    SurfaceHolder surfaceHolder;
+    RecyclerView recyclerView;
     MessageListAdapter adapter;
     CameraDetector detector;
     EmojiAppCompatButton emojiButton;
     EditText editText;
     ImageButton sendButton;
     List<EmojiMessage> messageList;
-    int previewWidth = 0;
-    int previewHeight = 0;
+    int cameraWidth;
+    int cameraHeight;
+    int previewWidth;
+    int previewHeight;
+    Bitmap lastFrame;
     private String messageRecipient = "@username";
 
     @Override
@@ -46,9 +55,38 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
 
         presenter = new CameraPreviewPresenter(this);
 
-        rootLayout = findViewById(R.id.root_layout);
         cameraPreview = findViewById(R.id.camera_preview);
-        cameraPreview.setDrawingCacheEnabled(true);
+        surfaceHolder = cameraPreview.getHolder();
+        rootLayout = findViewById(R.id.root_layout);
+        rootLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                rootLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                int layoutWidth = Math.round(rootLayout.getWidth() * .25f);
+                int layoutHeight = Math.round(rootLayout.getHeight() * .25f);
+
+                float layoutAspectRatio = (float) layoutWidth / layoutHeight;
+                float cameraPreviewAspectRatio = (float) cameraWidth / cameraHeight;
+
+                int newWidth;
+                int newHeight;
+
+                if (cameraPreviewAspectRatio > layoutAspectRatio) {
+                    newWidth = layoutWidth;
+                    newHeight = (int) (layoutWidth / cameraPreviewAspectRatio);
+                } else {
+                    newWidth = (int) (layoutHeight * cameraPreviewAspectRatio);
+                    newHeight = layoutHeight;
+                }
+
+                ViewGroup.LayoutParams params = cameraPreview.getLayoutParams();
+                params.height = newHeight;
+                params.width = newWidth;
+                previewHeight = newHeight;
+                previewWidth = newWidth;
+                cameraPreview.setLayoutParams(params);
+            }
+        });
         emojiButton = findViewById(R.id.emoji_button);
         editText = findViewById(R.id.edit_text);
         editText.setHint(getString(R.string.message_field_hint, messageRecipient));
@@ -56,8 +94,11 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         emojiButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Send message with just the emoji and the picture
-                messageList.add(new EmojiMessage(emojiButton.getText().toString(), null));
+                if (lastFrame != null) {
+                    addMessageToList(new EmojiMessage(emojiButton.getText().toString(), lastFrame));
+                } else {
+                    Timber.d("lastFrame is null");
+                }
                 adapter.setDataset(messageList);
             }
         });
@@ -66,20 +107,26 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                messageList.add(new EmojiMessage(editText.getText().toString(), null));
+                String messageText = editText.getText().toString();
+                if (!messageText.isEmpty()) {
+                    addMessageToList(new EmojiMessage(editText.getText().toString(), null));
+                }
                 adapter.setDataset(messageList);
                 editText.setText("");
             }
         });
 
+        setupCameraDetector();
+        setupRecyclerView();
+    }
+
+    private void setupCameraDetector() {
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraPreview);
         detector.setDetectAllEmotions(true);
         detector.setDetectAllEmojis(true);
         detector.setImageListener(this);
         detector.setOnCameraEventListener(this);
         detector.setMaxProcessRate(1);
-
-        setupRecyclerView();
     }
 
     private void setupRecyclerView() {
@@ -90,6 +137,10 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         messageList = new ArrayList<>();
         adapter = new MessageListAdapter(messageList);
         recyclerView.setAdapter(adapter);
+    }
+
+    private void addMessageToList(EmojiMessage message) {
+        messageList.add(message);
     }
 
     @Override
@@ -119,7 +170,9 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
 
     @Override
     public void onImageResults(List<Face> faces, Frame frame, float v) {
-        presenter.onImageResult(faces);
+        if (presenter.onImageResult(faces)) {
+            lastFrame = frame.getOriginalBitmapFrame();
+        }
     }
 
     @Override
@@ -132,19 +185,14 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         emojiButton.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
-    public void onCameraSizeSelected(int width, int height, Frame.ROTATE rotate) {
-        if (rotate == Frame.ROTATE.BY_90_CCW || rotate == Frame.ROTATE.BY_90_CW) {
-            previewWidth = height;
-            previewHeight = width;
+    @Override
+    public void onCameraSizeSelected(int cameraWidth, int cameraHeight, Frame.ROTATE rotation) {
+        if (rotation == Frame.ROTATE.BY_90_CCW || rotation == Frame.ROTATE.BY_90_CW) {
+            this.cameraWidth = cameraHeight;
+            this.cameraHeight = cameraWidth;
         } else {
-            previewHeight = height;
-            previewWidth = width;
+            this.cameraWidth = cameraWidth;
+            this.cameraHeight = cameraHeight;
         }
-        float scaleFactor = rootLayout.getMaxWidth() / (previewWidth * 4);
-        ViewGroup.LayoutParams layoutParams = cameraPreview.getLayoutParams();
-        layoutParams.width = Math.round(previewWidth * scaleFactor);
-        layoutParams.height = Math.round(previewHeight * scaleFactor);
-        cameraPreview.requestLayout();
     }
 }

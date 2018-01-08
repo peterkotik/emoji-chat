@@ -12,31 +12,32 @@ class CameraPreviewPresenter implements CameraPreviewContract.Presenter {
 
     private CameraPreviewContract.View view;
 
-    private Face.EMOJI emoji;
+    private Face.EMOJI mostRecentEmoji;
 
     CameraPreviewPresenter(@NonNull CameraPreviewContract.View view) {
         this.view = view;
-        emoji = Face.EMOJI.UNKNOWN;
+        mostRecentEmoji = Face.EMOJI.UNKNOWN;
     }
 
     @Override
-    public void onImageResult(List<Face> faces) {
+    public boolean onImageResult(List<Face> faces) {
         if (faces == null) {
             Timber.e("Image not processed");
-            return;
+            return false;
         }
 
         if (faces.size() == 0) {
             Timber.w("No faces found");
-            return;
+            return false;
         }
 
         Face face = faces.get(0);
 
-        emoji = face.emojis.getDominantEmoji();
+        mostRecentEmoji = face.emojis.getDominantEmoji();
 
-        view.setEmojiButtonText(emoji.getUnicode());
+        view.setEmojiButtonText(mostRecentEmoji.getUnicode());
         view.setEmojiButtonVisible(true);
+        return true;
     }
 
 }

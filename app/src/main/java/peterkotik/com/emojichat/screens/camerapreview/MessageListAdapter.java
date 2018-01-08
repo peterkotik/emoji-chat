@@ -1,9 +1,11 @@
 package peterkotik.com.emojichat.screens.camerapreview;
 
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -48,13 +50,30 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        public CardView cardView;
+        public FrameLayout frameLayout;
         public TextView textView;
         public ImageView imageView;
 
         public ViewHolder(View v) {
             super(v);
+            cardView = v.findViewById(R.id.cardview);
+            frameLayout = v.findViewById(R.id.content_container);
             textView = v.findViewById(R.id.message_text);
             imageView = v.findViewById(R.id.message_bitmap);
+
+            cardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (textView.getVisibility() == View.VISIBLE) {
+                        textView.setVisibility(View.GONE);
+                        imageView.setVisibility(View.VISIBLE);
+                    } else {
+                        textView.setVisibility(View.VISIBLE);
+                        imageView.setVisibility(View.GONE);
+                    }
+                }
+            });
         }
     }
 }

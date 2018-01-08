@@ -13,7 +13,7 @@ interface CameraPreviewContract {
     }
 
     interface Presenter {
-        void onImageResult(List<Face> faces);
+        boolean onImageResult(List<Face> faces);
 
     }
 }
