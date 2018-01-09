@@ -2,14 +2,11 @@ package peterkotik.com.emojichat.screens.camerapreview;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.text.emoji.widget.EmojiAppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +32,6 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
     CameraPreviewContract.Presenter presenter;
     ConstraintLayout rootLayout;
     SurfaceView cameraPreview;
-    SurfaceHolder surfaceHolder;
     RecyclerView recyclerView;
     MessageListAdapter adapter;
     CameraDetector detector;
@@ -58,7 +54,6 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         presenter = new CameraPreviewPresenter(this);
 
         cameraPreview = findViewById(R.id.camera_preview);
-        surfaceHolder = cameraPreview.getHolder();
         rootLayout = findViewById(R.id.root_layout);
         rootLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -97,9 +92,9 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
             @Override
             public void onClick(View view) {
                 if (lastFrame != null) {
-                    addMessageToList(new EmojiMessage(emojiButton.getText().toString(), lastFrame));
+                    messageList.add(new EmojiMessage(emojiButton.getText().toString(), lastFrame));
                 } else {
-                    Timber.d("lastFrame is null");
+                    Timber.e("lastFrame is null somehow");
                 }
                 adapter.setDataset(messageList);
             }
@@ -111,7 +106,7 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
             public void onClick(View view) {
                 String messageText = editText.getText().toString();
                 if (!messageText.isEmpty()) {
-                    addMessageToList(new EmojiMessage(editText.getText().toString(), null));
+                    messageList.add(new EmojiMessage(editText.getText().toString(), null));
                 }
                 adapter.setDataset(messageList);
                 editText.setText("");
@@ -139,10 +134,6 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         messageList = new ArrayList<>();
         adapter = new MessageListAdapter(messageList);
         recyclerView.setAdapter(adapter);
-    }
-
-    private void addMessageToList(EmojiMessage message) {
-        messageList.add(message);
     }
 
     @Override
