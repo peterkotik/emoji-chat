@@ -3,6 +3,7 @@ package peterkotik.com.emojichat.screens.camerapreview;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.text.emoji.widget.EmojiAppCompatButton;
@@ -24,6 +25,7 @@ import com.affectiva.android.affdex.sdk.detector.Face;
 import java.util.ArrayList;
 import java.util.List;
 
+import peterkotik.com.emojichat.AffdexUtils;
 import peterkotik.com.emojichat.R;
 import peterkotik.com.emojichat.models.EmojiMessage;
 import timber.log.Timber;
@@ -171,7 +173,7 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
     @Override
     public void onImageResults(List<Face> faces, Frame frame, float v) {
         if (presenter.onImageResult(faces)) {
-            lastFrame = frame.getOriginalBitmapFrame();
+            lastFrame = AffdexUtils.getBitmapFromFrame(frame);
         }
     }
 
