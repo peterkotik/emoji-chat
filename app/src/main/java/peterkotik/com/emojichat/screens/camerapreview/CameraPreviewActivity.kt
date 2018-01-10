@@ -14,6 +14,7 @@ import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.ImageButton
 import butterknife.BindView
+import butterknife.ButterKnife
 import com.affectiva.android.affdex.sdk.Frame
 import com.affectiva.android.affdex.sdk.detector.CameraDetector
 import com.affectiva.android.affdex.sdk.detector.Detector
@@ -23,26 +24,15 @@ import peterkotik.com.emojichat.models.EmojiMessage
 import peterkotik.com.emojichat.utils.AffdexUtils
 import timber.log.Timber
 
-class CameraPreviewActivityKt: Activity(), CameraPreviewContract.View, Detector.ImageListener, CameraDetector.CameraEventListener {
+class CameraPreviewActivity : Activity(), CameraPreviewContract.View, Detector.ImageListener, CameraDetector.CameraEventListener {
 
     lateinit private var presenter: CameraPreviewContract.Presenter
 
-    @BindView(R.id.root_layout)
     lateinit private var rootLayout: ConstraintLayout
-
-    @BindView(R.id.camera_preview)
     lateinit private var cameraPreview: SurfaceView
-
-    @BindView(R.id.message_list)
     lateinit private var recyclerView: RecyclerView
-
-    @BindView(R.id.emoji_button)
     lateinit private var emojiButton: EmojiAppCompatButton
-
-    @BindView(R.id.edit_text)
     lateinit private var editText: EditText
-
-    @BindView(R.id.send_button)
     lateinit private var sendButton: ImageButton
 
     lateinit private var detector: CameraDetector
@@ -56,7 +46,14 @@ class CameraPreviewActivityKt: Activity(), CameraPreviewContract.View, Detector.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_preview)
 
-        presenter = CameraPreviewPresenterKt(this)
+        rootLayout = findViewById(R.id.root_layout)
+        cameraPreview = findViewById(R.id.camera_preview)
+        recyclerView = findViewById(R.id.message_list)
+        emojiButton = findViewById(R.id.emoji_button)
+        editText = findViewById(R.id.edit_text)
+        sendButton = findViewById(R.id.send_button)
+
+        presenter = CameraPreviewPresenter(this)
         rootLayout.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 rootLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
