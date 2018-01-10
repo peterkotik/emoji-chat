@@ -51,7 +51,7 @@ public class CameraPreviewActivity extends Activity implements CameraPreviewCont
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_preview);
 
-        presenter = new CameraPreviewPresenter(this);
+        presenter = new CameraPreviewPresenterKt(this);
 
         cameraPreview = findViewById(R.id.camera_preview);
         rootLayout = findViewById(R.id.root_layout);
