@@ -1,4 +1,4 @@
-package peterkotik.com.emojichat;
+package peterkotik.com.emojichat.utils;
 
 import android.content.ContentValues;
 import android.content.Context;

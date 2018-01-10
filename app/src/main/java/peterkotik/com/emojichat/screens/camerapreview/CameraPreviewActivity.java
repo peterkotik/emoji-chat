@@ -22,7 +22,7 @@ import com.affectiva.android.affdex.sdk.detector.Face;
 import java.util.ArrayList;
 import java.util.List;
 
-import peterkotik.com.emojichat.AffdexUtils;
+import peterkotik.com.emojichat.utils.AffdexUtils;
 import peterkotik.com.emojichat.R;
 import peterkotik.com.emojichat.models.EmojiMessage;
 import timber.log.Timber;
