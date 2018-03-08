@@ -10,8 +10,8 @@ internal class CameraPreviewPresenter(private val view: CameraPreviewContract.Vi
         mostRecentEmoji = Face.EMOJI.UNKNOWN
     }
 
-    override fun onImageResult(faces: List<Face>?): Boolean {
-        if (faces != null && faces.isNotEmpty()) {
+    override fun onImageResult(faces: List<Face>): Boolean {
+        if (faces.isNotEmpty()) {
             val face: Face = faces.get(0)
             mostRecentEmoji = face.emojis.dominantEmoji
 

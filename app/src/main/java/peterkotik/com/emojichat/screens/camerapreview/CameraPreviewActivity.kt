@@ -13,8 +13,6 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.ImageButton
-import butterknife.BindView
-import butterknife.ButterKnife
 import com.affectiva.android.affdex.sdk.Frame
 import com.affectiva.android.affdex.sdk.detector.CameraDetector
 import com.affectiva.android.affdex.sdk.detector.Detector
@@ -59,7 +57,7 @@ class CameraPreviewActivity : Activity(), CameraPreviewContract.View, Detector.I
                 rootLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
                 val containerWidth: Float = rootLayout.width * .25f
                 val containerHeight: Float = rootLayout.height * .25f
-                val layoutAspectRatio: Float = containerWidth/containerHeight
+                val layoutAspectRatio: Float = containerWidth / containerHeight
                 val cameraAspectRatio: Float = cameraWidth.toFloat() / cameraHeight
                 val previewWidth: Int = if (cameraAspectRatio > layoutAspectRatio) Math.round(containerWidth) else Math.round(containerHeight * cameraAspectRatio)
                 val previewHeight: Int = if (cameraAspectRatio > layoutAspectRatio) Math.round(containerWidth / cameraAspectRatio) else Math.round(containerHeight)
@@ -80,7 +78,7 @@ class CameraPreviewActivity : Activity(), CameraPreviewContract.View, Detector.I
             }
         }
         sendButton.setOnClickListener {
-            var messageText: String = editText.text.toString()
+            val messageText: String = editText.text.toString()
             if (!messageText.isBlank()) {
                 messageList.add(EmojiMessage(messageText, null))
                 adapter.setDataset(messageList)
@@ -123,15 +121,15 @@ class CameraPreviewActivity : Activity(), CameraPreviewContract.View, Detector.I
     }
 
     override fun onImageResults(faces: MutableList<Face>?, frame: Frame?, timestamp: Float) {
-        if (presenter.onImageResult(faces)) {
+        if (faces != null && presenter.onImageResult(faces)) {
             frame?.let {
                 lastFrame = AffdexUtils.getBitmapFromFrame(frame)
             }
         }
     }
 
-    override fun setEmojiButtonText(text: String?) {
-        emojiButton.text = text ?: ""
+    override fun setEmojiButtonText(text: String) {
+        emojiButton.text = text
     }
 
     override fun setEmojiButtonVisible(visible: Boolean) {
